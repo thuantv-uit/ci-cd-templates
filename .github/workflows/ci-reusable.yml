@@ -13,11 +13,16 @@ on:
         required: false
         type: boolean
         default: true
+      change_filters:
+        required: false
+        type: string
 
 jobs:
   detect-changes:
     if: inputs.enable_detect_change
     uses: ./.github/workflows/detect-change.yml
+    with:
+      filters: ${{ inputs.change_filters }}
 
   setup:
     needs: [detect-changes]
