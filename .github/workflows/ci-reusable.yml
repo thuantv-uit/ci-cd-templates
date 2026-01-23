@@ -43,12 +43,12 @@ jobs:
       base_ref: ${{ inputs.base_ref }}
     # Nếu repo reusable là private/external, thay bằng full path: your-username/my-ci-templates/.github/workflows/detect-change.yml@main
 
-  setup-environment:
-    if: ${{ inputs.enable_setup_environment }}
-    needs: detect-change
-    # Logic: Chạy nếu bật setup VÀ (không bật detect HOẶC detect có thay đổi)
+    setup-environment:
     if: >-
-      ${{ inputs.enable_setup_environment && ( !inputs.enable_detect_change || needs.detect-change.outputs.any_changed == 'true' ) }}
+      ${{ inputs.enable_setup_environment &&
+          ( !inputs.enable_detect_change ||
+            needs.detect-change.outputs.any_changed == 'true' ) }}
+    needs: detect-change
     uses: ./.github/workflows/setup-environment.yml
     with:
       language: ${{ inputs.language }}
