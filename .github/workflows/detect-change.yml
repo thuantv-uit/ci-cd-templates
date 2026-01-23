@@ -3,21 +3,13 @@ name: Detect Changes
 on:
   workflow_call:
     inputs:
+      filters:
+        required: true
+        type: string
       base_ref:
         required: false
         type: string
         default: main
-
-      change_filters:
-        required: false
-        type: string
-        default: |
-          code:
-            - "src/**"
-            - "app/**"
-            - "*.py"
-            - "requirements.txt"
-            - "package.json"
 
     outputs:
       any_changed:
@@ -34,11 +26,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect path changes
-        id: filter
+      - id: filter
         uses: dorny/paths-filter@v3
         with:
-          filters: ${{ inputs.change_filters }}
+          filters: ${{ inputs.filters }}
           base: ${{ inputs.base_ref }}
 
-      - run: echo "Changed = ${{ steps.filter.outputs.any_changed }}"
+      - run: echo "any_changed=${{ steps.filter.outputs.any_changed }}"
