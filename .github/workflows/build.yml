@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        required: true
+        type: string
+      workdir:
+        required: true
+        type: string
+      build_cmd:
+        required: false
+        type: string
+      install_cmd:
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------- Frontend (React / Node) ----------
+      - name: Install dependencies (Node)
+        if: inputs.language == 'node'
+        run: ${{ inputs.install_cmd || 'npm ci' }}
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Build frontend
+        if: inputs.language == 'node'
+        run: ${{ inputs.build_cmd || 'npm run build' }}
+        working-directory: ${{ inputs.workdir }}
+
+      # ---------- Backend (Python – future ready) ----------
+      - name: Install dependencies (Python)
+        if: inputs.language == 'python'
+        run: pip install -r requirements.txt
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Build backend
+        if: inputs.language == 'python'
+        run: echo "No build step for python"

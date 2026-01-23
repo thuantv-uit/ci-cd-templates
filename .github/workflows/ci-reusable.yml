@@ -16,6 +16,12 @@ on:
       change_filters:
         required: false
         type: string
+      install_cmd:
+        required: false
+        type: string
+      build_cmd:
+        required: false
+        type: string
 
 jobs:
   detect-changes:
@@ -33,3 +39,12 @@ jobs:
     with:
       language: ${{ inputs.language }}
       version: ${{ inputs.version }}
+
+  build:
+    needs: [setup]
+    uses: ./.github/workflows/build.yml
+    with:
+      language: ${{ inputs.language }}
+      workdir: ${{ inputs.workdir }}
+      install_cmd: ${{ inputs.install_cmd }}
+      build_cmd: ${{ inputs.build_cmd }}
