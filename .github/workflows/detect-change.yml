@@ -19,7 +19,7 @@ jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
-      any_changed: ${{ steps.filter.outputs.any_changed }}
+      any_changed: ${{ steps.result.outputs.any_changed }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,4 +32,12 @@ jobs:
           filters: ${{ inputs.filters }}
           base: ${{ inputs.base_ref }}
 
-      - run: echo "any_changed=${{ steps.filter.outputs.any_changed }}"
+      # 🔥 STEP QUAN TRỌNG: tổng hợp output
+      - id: result
+        run: |
+          echo "Raw changes: ${{ steps.filter.outputs.changes }}"
+          if [ "${{ steps.filter.outputs.changes }}" != "[]" ]; then
+            echo "any_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "any_changed=false" >> $GITHUB_OUTPUT
+          fi
