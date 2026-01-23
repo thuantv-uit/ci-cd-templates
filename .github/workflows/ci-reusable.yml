@@ -1,0 +1,54 @@
+name: Reusable CI Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+      enable_detect_change:
+        required: false
+        type: boolean
+        default: true
+
+      enable_setup_environment:
+        required: false
+        type: boolean
+        default: true
+
+      change_filters:
+        required: false
+        type: string
+        default: ''  # Sẽ dùng default của detect nếu rỗng
+
+      base_ref:
+        required: false
+        type: string
+        default: 'main'
+
+    outputs:
+      any_changed:
+        value: ${{ jobs.detect-change.outputs.any_changed }}
+
+jobs:
+  detect-change:
+    if: ${{ inputs.enable_detect_change }}
+    uses: ./.github/workflows/detect-change.yml  # Gọi local trong cùng repo (không cần @ref)
+    with:
+      change_filters: ${{ inputs.change_filters }}
+      base_ref: ${{ inputs.base_ref }}
+    # Nếu repo reusable là private/external, thay bằng full path: your-username/my-ci-templates/.github/workflows/detect-change.yml@main
+
+  setup-environment:
+    if: ${{ inputs.enable_setup_environment }}
+    needs: detect-change
+    # Logic: Chạy nếu bật setup VÀ (không bật detect HOẶC detect có thay đổi)
+    if: ${{ inputs.enable_setup_environment && ( !inputs.enable_detect_change || needs.detect-change.outputs.any_changed == 'true' ) }}
+    uses: ./.github/workflows/setup-environment.yml
+    with:
+      language: ${{ inputs.language }}
+      version: ${{ inputs.version }}
