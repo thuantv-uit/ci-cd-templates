@@ -12,6 +12,7 @@ on:
       workdir:
         required: true
         type: string
+
       enable_detect_change:
         required: false
         type: boolean
@@ -19,10 +20,14 @@ on:
       change_filters:
         required: false
         type: string
+
       install_cmd:
         required: false
         type: string
       build_cmd:
+        required: false
+        type: string
+      test_cmd:
         required: false
         type: string
 
@@ -51,3 +56,4 @@ jobs:
       workdir: ${{ inputs.workdir }}
       install_cmd: ${{ inputs.install_cmd }}
       build_cmd: ${{ inputs.build_cmd }}
+      test_cmd: ${{ inputs.test_cmd }}

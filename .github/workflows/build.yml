@@ -9,10 +9,13 @@ on:
       workdir:
         required: true
         type: string
+      install_cmd:
+        required: false
+        type: string
       build_cmd:
         required: false
         type: string
-      install_cmd:
+      test_cmd:
         required: false
         type: string
 
@@ -23,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ---------- Frontend (React / Node) ----------
+      # ---------- Node / Frontend ----------
       - name: Install dependencies (Node)
         if: inputs.language == 'node'
         run: ${{ inputs.install_cmd || 'npm ci' }}
@@ -34,12 +37,19 @@ jobs:
         run: ${{ inputs.build_cmd || 'npm run build' }}
         working-directory: ${{ inputs.workdir }}
 
-      # ---------- Backend (Python – future ready) ----------
+      # ---------- Python / Backend ----------
       - name: Install dependencies (Python)
         if: inputs.language == 'python'
-        run: pip install -r requirements.txt
+        run: ${{ inputs.install_cmd || 'pip install -r requirements.txt' }}
         working-directory: ${{ inputs.workdir }}
 
-      - name: Build backend
+      - name: Start backend server
         if: inputs.language == 'python'
-        run: echo "No build step for python"
+        run: |
+          python app.py &
+          sleep 3
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Smoke test backend
+        if: inputs.language == 'python'
+        run: ${{ inputs.test_cmd || 'curl --fail http://localhost:8000' }}
