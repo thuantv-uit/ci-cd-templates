@@ -7,16 +7,18 @@ on:
         required: false
         type: string
         default: main
+
       change_filters:
         required: false
         type: string
         default: |
           code:
-            - 'src/**'
-            - 'app/**'
-            - '*.py'
-            - 'requirements.txt'
-            - 'package.json'
+            - "src/**"
+            - "app/**"
+            - "*.py"
+            - "requirements.txt"
+            - "package.json"
+
     outputs:
       any_changed:
         value: ${{ jobs.detect.outputs.any_changed }}
@@ -39,5 +41,4 @@ jobs:
           filters: ${{ inputs.change_filters }}
           base: ${{ inputs.base_ref }}
 
-      - name: Debug
-        run: echo "Changed: ${{ steps.filter.outputs.any_changed }}"
+      - run: echo "Changed = ${{ steps.filter.outputs.any_changed }}"

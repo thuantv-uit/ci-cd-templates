@@ -17,7 +17,7 @@ on:
 jobs:
   detect-changes:
     if: inputs.enable_detect_change
-    uses: ./.github/workflows/detect-changes.yml
+    uses: ./.github/workflows/detect-change.yml
 
   setup:
     needs: [detect-changes]
