@@ -11,14 +11,14 @@ on:
         type: string
     outputs:
       setup_complete:
-        description: 'Setup đã hoàn tất'
         value: ${{ jobs.setup.outputs.complete }}
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      complete: true  # Có thể set dựa trên condition nếu cần
+      complete: true
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,16 +27,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.version }}
-          cache: 'pip'
+          cache: pip
 
       - name: Setup Node.js
         if: inputs.language == 'node'
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.version }}
-          cache: 'npm'
+          cache: npm
 
-      # Thêm Java, Go,... sau
-
-      - name: Debug setup
-        run: echo "Setup done for ${{ inputs.language }} v${{ inputs.version }}"
+      - name: Debug
+        run: echo "Setup ${{ inputs.language }} v${{ inputs.version }}"
