@@ -47,7 +47,8 @@ jobs:
     if: ${{ inputs.enable_setup_environment }}
     needs: detect-change
     # Logic: Chạy nếu bật setup VÀ (không bật detect HOẶC detect có thay đổi)
-    if: ${{ inputs.enable_setup_environment && ( !inputs.enable_detect_change || needs.detect-change.outputs.any_changed == 'true' ) }}
+    if: >-
+      ${{ inputs.enable_setup_environment && ( !inputs.enable_detect_change || needs.detect-change.outputs.any_changed == 'true' ) }}
     uses: ./.github/workflows/setup-environment.yml
     with:
       language: ${{ inputs.language }}
