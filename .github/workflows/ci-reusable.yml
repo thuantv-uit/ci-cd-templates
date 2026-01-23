@@ -9,6 +9,9 @@ on:
       version:
         required: true
         type: string
+      workdir:
+        required: true
+        type: string
       enable_detect_change:
         required: false
         type: boolean
