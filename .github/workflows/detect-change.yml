@@ -3,16 +3,12 @@ name: Detect Changes
 on:
   workflow_call:
     inputs:
-      filters:
+      change_filters:
         required: true
         type: string
-      base_ref:
-        required: false
-        type: string
-        default: main
-
     outputs:
       any_changed:
+        description: "Whether any path has changed"
         value: ${{ jobs.detect.outputs.any_changed }}
 
 jobs:
@@ -23,19 +19,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - id: filter
+      - name: Detect changes
+        id: filter
         uses: dorny/paths-filter@v3
         with:
-          filters: ${{ inputs.filters }}
-          base: ${{ inputs.base_ref }}
+          filters: ${{ inputs.change_filters }}
 
-      # 🔥 STEP QUAN TRỌNG: tổng hợp output
-      - id: result
+      - name: Export result
+        id: result
         run: |
-          echo "Raw changes: ${{ steps.filter.outputs.changes }}"
+          echo "Changes: ${{ steps.filter.outputs.changes }}"
           if [ "${{ steps.filter.outputs.changes }}" != "[]" ]; then
             echo "any_changed=true" >> $GITHUB_OUTPUT
           else

@@ -12,12 +12,18 @@ on:
       install_cmd:
         required: false
         type: string
+      start_cmd:
+        required: false
+        type: string
       build_cmd:
         required: false
         type: string
       test_cmd:
         required: false
         type: string
+      start_wait:
+        required: false
+        type: number
 
 jobs:
   build:
@@ -39,17 +45,17 @@ jobs:
 
       # ---------- Python / Backend ----------
       - name: Install dependencies (Python)
-        if: inputs.language == 'python'
-        run: ${{ inputs.install_cmd || 'pip install -r requirements.txt' }}
+        if: inputs.language == 'python' && inputs.install_cmd != ''
+        run: ${{ inputs.install_cmd }}
         working-directory: ${{ inputs.workdir }}
 
-      - name: Start backend server
-        if: inputs.language == 'python'
+      - name: Start backend
+        if: inputs.language == 'python' && inputs.start_cmd != ''
         run: |
-          python app.py &
-          sleep 3
-        working-directory: ${{ inputs.workdir }}
+          ${{ inputs.start_cmd }} &
+          sleep ${{ inputs.start_wait }}
+        working-directory: ${{ inputs.workdir }
 
-      - name: Smoke test backend
-        if: inputs.language == 'python'
-        run: ${{ inputs.test_cmd || 'curl --fail http://localhost:8000' }}
+      - name: Run backend tests
+        if: inputs.language == 'python' && inputs.test_cmd != ''
+        run: ${{ inputs.test_cmd }}

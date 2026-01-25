@@ -24,22 +24,28 @@ on:
       install_cmd:
         required: false
         type: string
+      start_cmd:
+        required: false
+        type: string
       build_cmd:
         required: false
         type: string
       test_cmd:
         required: false
         type: string
+      start_wait:
+        required: false
+        type: number
 
 jobs:
   detect-changes:
     if: inputs.enable_detect_change
     uses: ./.github/workflows/detect-change.yml
     with:
-      filters: ${{ inputs.change_filters }}
+      change_filters: ${{ inputs.change_filters }}
 
   setup:
-    needs: [detect-changes]
+    needs: detect-changes
     if: |
       !inputs.enable_detect_change ||
       needs.detect-changes.outputs.any_changed == 'true'
@@ -49,14 +55,14 @@ jobs:
       version: ${{ inputs.version }}
 
   build:
-    needs: [setup]
+    needs: setup
     uses: ./.github/workflows/build.yml
     with:
       language: ${{ inputs.language }}
       workdir: ${{ inputs.workdir }}
+
       install_cmd: ${{ inputs.install_cmd }}
       build_cmd: ${{ inputs.build_cmd }}
+      start_cmd: ${{ inputs.start_cmd }}
       test_cmd: ${{ inputs.test_cmd }}
-
-
-# reset hard
+      start_wait: ${{ inputs.start_wait }}
