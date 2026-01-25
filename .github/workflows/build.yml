@@ -54,7 +54,7 @@ jobs:
         run: |
           ${{ inputs.start_cmd }} &
           sleep ${{ inputs.start_wait }}
-        working-directory: ${{ inputs.workdir }
+        working-directory: ${{ inputs.workdir }}
 
       - name: Run backend tests
         if: inputs.language == 'python' && inputs.test_cmd != ''
