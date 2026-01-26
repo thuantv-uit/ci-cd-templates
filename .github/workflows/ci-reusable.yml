@@ -37,6 +37,23 @@ on:
         required: false
         type: number
 
+      project_key:
+        required: true
+        type: string
+      organization:
+        required: false
+        type: string
+      extra_args:
+        required: false
+        type: string
+      coverage_report_paths:
+        required: false
+        type: string
+
+      secrets:
+        SONAR_TOKEN:
+          required: true
+
 jobs:
   detect-changes:
     if: inputs.enable_detect_change
