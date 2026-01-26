@@ -29,8 +29,10 @@ jobs:
       - name: Export result
         id: result
         run: |
-          echo "Changes: ${{ steps.filter.outputs.changes }}"
-          if [ "${{ steps.filter.outputs.changes }}" != "[]" ]; then
+          echo "Raw changes: ${{ steps.filter.outputs.changes }}"
+          COUNT=$(echo '${{ steps.filter.outputs.changes }}' | jq length)
+
+          if [ "$COUNT" -gt 0 ]; then
             echo "any_changed=true" >> $GITHUB_OUTPUT
           else
             echo "any_changed=false" >> $GITHUB_OUTPUT
