@@ -87,13 +87,13 @@ jobs:
   sonar:
     needs: build
     if: |
-      inputs.sonar_project_key != '' &&
+      inputs.project_key != '' &&
       (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
     uses: ./.github/workflows/sonarcloud-scan.yml
     with:
-      project_key: ${{ inputs.sonar_project_key }}
-      organization: ${{ inputs.sonar_organization }}
+      project_key: ${{ inputs.project_key }}
+      organization: ${{ inputs.organization }}
       workdir: ${{ inputs.workdir }}
-      extra_args: ${{ inputs.sonar_extra_args }}
+      extra_args: ${{ inputs.xtra_args }}
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
