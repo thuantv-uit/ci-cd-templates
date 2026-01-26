@@ -1,0 +1,53 @@
+name: SonarCloud Scan (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      project_key:
+        required: true
+        type: string
+      organization:
+        required: false
+        type: string
+      workdir:
+        required: false
+        type: string
+        default: .
+      extra_args:
+        required: false
+        type: string
+      coverage_report_paths:
+        required: false
+        type: string
+
+    secrets:
+      SONAR_TOKEN:
+        required: true
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Nếu cần download coverage từ job build trước (tùy project)
+      - name: Download coverage artifacts
+        if: inputs.coverage_report_paths != ''
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: ${{ inputs.workdir }}
+          merge-multiple: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ inputs.project_key }}
+            ${{ inputs.organization != '' && format('-Dsonar.organization={0}', inputs.organization) || '' }}
+            -Dsonar.working.directory=${{ inputs.workdir }}
+            ${{ inputs.extra_args }}

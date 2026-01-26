@@ -66,3 +66,17 @@ jobs:
       start_cmd: ${{ inputs.start_cmd }}
       test_cmd: ${{ inputs.test_cmd }}
       start_wait: ${{ inputs.start_wait }}
+
+  sonar:
+    needs: build
+    if: |
+      inputs.sonar_project_key != '' &&
+      (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
+    uses: ./.github/workflows/sonarcloud-scan.yml
+    with:
+      project_key: ${{ inputs.sonar_project_key }}
+      organization: ${{ inputs.sonar_organization }}
+      workdir: ${{ inputs.workdir }}
+      extra_args: ${{ inputs.sonar_extra_args }}
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
