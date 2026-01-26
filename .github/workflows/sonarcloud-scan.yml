@@ -20,10 +20,10 @@ on:
         required: false
         type: string
 
-    secrets:
-      SONAR_TOKEN:
-        required: true
-        type: string
+  secrets:
+    SONAR_TOKEN:
+      required: true
+      type: string
 
 jobs:
   sonarcloud:
