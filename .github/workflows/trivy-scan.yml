@@ -1,0 +1,82 @@
+name: Trivy Docker Image Scan
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: "Docker image name (e.g. backend-auth)"
+        required: true
+        type: string
+
+      image_tag:
+        description: "Docker image tag"
+        required: false
+        type: string
+        default: "latest"
+
+      workdir:
+        description: "Build context & Dockerfile directory"
+        required: true
+        type: string
+
+      dockerfile:
+        description: "Dockerfile name"
+        required: false
+        type: string
+        default: "Dockerfile"
+
+      severity:
+        required: false
+        type: string
+        default: "CRITICAL,HIGH"
+
+      ignore_unfixed:
+        required: false
+        type: boolean
+        default: true
+
+      exit_code:
+        description: "Exit code when vulnerabilities found (1 = fail pipeline)"
+        required: false
+        type: number
+        default: 1
+
+jobs:
+  trivy-image-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ inputs.image_name }}:${{ inputs.image_tag }} \
+            -f ${{ inputs.workdir }}/${{ inputs.dockerfile }} \
+            ${{ inputs.workdir }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ inputs.image_name }}:${{ inputs.image_tag }}
+          format: json
+          output: trivy-${{ inputs.image_name }}.json
+          severity: ${{ inputs.severity }}
+          ignore-unfixed: ${{ inputs.ignore_unfixed }}
+          vuln-type: os,library
+          exit-code: ${{ inputs.exit_code }}
+
+      - name: Upload Trivy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ inputs.image_name }}
+          path: trivy-${{ inputs.image_name }}.json
+          retention-days: 7

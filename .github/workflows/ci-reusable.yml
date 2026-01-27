@@ -54,6 +54,34 @@ on:
         required: false
         type: string
 
+      enable_trivy_image:
+        required: false
+        type: boolean
+        default: false
+      trivy_image_name:
+        required: false
+        type: string
+      trivy_image_tag:
+        required: false
+        type: string
+        default: "latest"
+      trivy_dockerfile:
+        required: false
+        type: string
+        default: "Dockerfile"
+      trivy_severity:
+        required: false
+        type: string
+        default: "CRITICAL,HIGH"
+      trivy_ignore_unfixed:
+        required: false
+        type: boolean
+        default: true
+      trivy_exit_code:
+        required: false
+        type: number
+        default: 1
+
 jobs:
   detect-changes:
     if: inputs.enable_detect_change
@@ -94,6 +122,22 @@ jobs:
       project_key: ${{ inputs.project_key }}
       organization: ${{ inputs.organization }}
       workdir: ${{ inputs.workdir }}
-      extra_args: ${{ inputs.xtra_args }}
+      extra_args: ${{ inputs.extra_args }}
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  trivy-image:
+    needs: sonar
+    if: |
+      inputs.enable_trivy_image &&
+      inputs.trivy_image_name != '' &&
+      (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
+    uses: ./.github/workflows/trivy-docker-scan.yml
+    with:
+      image_name: ${{ inputs.trivy_image_name }}
+      image_tag: ${{ inputs.trivy_image_tag }}
+      workdir: ${{ inputs.workdir }}
+      dockerfile: ${{ inputs.trivy_dockerfile }}
+      severity: ${{ inputs.trivy_severity }}
+      ignore_unfixed: ${{ inputs.trivy_ignore_unfixed }}
+      exit_code: ${{ inputs.trivy_exit_code }}
