@@ -43,9 +43,7 @@ Each job can be **enabled or disabled independently** via inputs.
 
 > Example GitHub Actions workflow execution using this template:
 
-![CI Pipeline Demo](docs/images/ci-demo.png)
-
-> 📌 _Replace the image with your real pipeline screenshot_
+👉 https://github.com/thuantv-uit/test-ci-cd-templates.git
 
 ---
 
