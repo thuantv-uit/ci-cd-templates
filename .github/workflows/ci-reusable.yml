@@ -7,100 +7,112 @@ on:
         required: false
 
     inputs:
+      # -------- Environment --------
       language:
-        required: true
         type: string
-      version:
         required: true
-        type: string
-      workdir:
-        required: true
-        type: string
 
-      enable_detect_change:
-        required: false
+      version:
+        type: string
+        required: true
+
+      workdir:
+        type: string
+        required: true
+
+      # -------- Job Toggles --------
+      enable_detect_job:
         type: boolean
         default: true
-      change_filters:
-        required: false
-        type: string
 
-      install_cmd:
-        required: false
-        type: string
-      start_cmd:
-        required: false
-        type: string
-      build_cmd:
-        required: false
-        type: string
-      test_cmd:
-        required: false
-        type: string
-      start_wait:
-        required: false
-        type: number
+      enable_setup_job:
+        type: boolean
+        default: true
 
-      project_key:
-        required: true
-        type: string
-      organization:
-        required: false
-        type: string
-      extra_args:
-        required: false
-        type: string
-      coverage_report_paths:
-        required: false
-        type: string
+      enable_build_job:
+        type: boolean
+        default: true
 
-      enable_trivy_image:
-        required: false
+      enable_sonar_job:
+        type: boolean
+        default: true
+
+      enable_trivy_job:
         type: boolean
         default: false
-      trivy_image_name:
+
+      # -------- Detect change --------
+      change_filters:
+        type: string
         required: false
+
+      # -------- Build / Test --------
+      install_cmd:
+        type: string
+      build_cmd:
+        type: string
+      start_cmd:
+        type: string
+      test_cmd:
+        type: string
+      start_wait:
+        type: number
+
+      # -------- Sonar --------
+      project_key:
+        type: string
+      organization:
+        type: string
+      extra_args:
+        type: string
+
+      # -------- Trivy --------
+      trivy_image_name:
         type: string
       trivy_image_tag:
-        required: false
         type: string
         default: "latest"
       trivy_dockerfile:
-        required: false
         type: string
         default: "Dockerfile"
       trivy_severity:
-        required: false
         type: string
         default: "CRITICAL,HIGH"
       trivy_ignore_unfixed:
-        required: false
         type: boolean
         default: true
       trivy_exit_code:
-        required: false
         type: number
         default: 1
 
 jobs:
+  # --------------------------------------------------
+  # 1. Detect source code changes
+  # --------------------------------------------------
   detect-changes:
-    if: inputs.enable_detect_change
+    if: inputs.enable_detect_job
     uses: ./.github/workflows/detect-change.yml
     with:
       change_filters: ${{ inputs.change_filters }}
 
+  # --------------------------------------------------
+  # 2. Setup runtime environment (Node, Python, Java…)
+  # --------------------------------------------------
   setup:
     needs: detect-changes
     if: |
-      !inputs.enable_detect_change ||
-      needs.detect-changes.outputs.any_changed == 'true'
+      inputs.enable_setup_job && ( !inputs.enable_detect_job || needs.detect-changes.outputs.any_changed == 'true' )
     uses: ./.github/workflows/setup-environment.yml
     with:
       language: ${{ inputs.language }}
       version: ${{ inputs.version }}
 
+  # --------------------------------------------------
+  # 3. Build & Test application
+  # --------------------------------------------------
   build:
     needs: setup
+    if: inputs.enable_build_job
     uses: ./.github/workflows/build.yml
     with:
       language: ${{ inputs.language }}
@@ -112,11 +124,15 @@ jobs:
       test_cmd: ${{ inputs.test_cmd }}
       start_wait: ${{ inputs.start_wait }}
 
+  # --------------------------------------------------
+  # 4. Static code analysis (SonarCloud)
+  # --------------------------------------------------
   sonar:
     needs: build
     if: |
+      inputs.enable_sonar_job &&
       inputs.project_key != '' &&
-      (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
+      ( !inputs.enable_detect_job || needs.detect-changes.outputs.any_changed == 'true' )
     uses: ./.github/workflows/sonarcloud-scan.yml
     with:
       project_key: ${{ inputs.project_key }}
@@ -126,12 +142,15 @@ jobs:
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+  # --------------------------------------------------
+  # 5. Container Image Security Scan (Trivy)
+  # --------------------------------------------------
   trivy-image:
-    needs: sonar
+    needs: build
     if: |
-      inputs.enable_trivy_image &&
+      inputs.enable_trivy_job &&
       inputs.trivy_image_name != '' &&
-      (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
+      ( !inputs.enable_detect_job || needs.detect-changes.outputs.any_changed == 'true' )
     uses: ./.github/workflows/trivy-scan.yml
     with:
       image_name: ${{ inputs.trivy_image_name }}
