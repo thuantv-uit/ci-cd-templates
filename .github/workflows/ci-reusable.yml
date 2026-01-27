@@ -132,7 +132,7 @@ jobs:
       inputs.enable_trivy_image &&
       inputs.trivy_image_name != '' &&
       (!inputs.enable_detect_change || needs.detect-changes.outputs.any_changed == 'true')
-    uses: ./.github/workflows/trivy-docker-scan.yml
+    uses: ./.github/workflows/trivy-scan.yml
     with:
       image_name: ${{ inputs.trivy_image_name }}
       image_tag: ${{ inputs.trivy_image_tag }}
