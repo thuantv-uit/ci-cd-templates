@@ -27,17 +27,21 @@ on:
 
       enable_setup_job:
         type: boolean
-        default: true
+        default: false
 
       enable_build_job:
         type: boolean
-        default: true
+        default: false
 
       enable_sonar_job:
         type: boolean
-        default: true
+        default: false
 
       enable_trivy_job:
+        type: boolean
+        default: false
+
+      enable_jest_job:
         type: boolean
         default: false
 
@@ -84,6 +88,18 @@ on:
       trivy_exit_code:
         type: number
         default: 1
+
+      # -------- Jest --------
+      test_cmd_jest:
+        type: string
+        required: false
+      start_db_cmd:
+        type: string
+        required: false
+      close_db_cmd:
+        type: string
+        required: false
+      
 
 jobs:
   # --------------------------------------------------
@@ -160,3 +176,21 @@ jobs:
       severity: ${{ inputs.trivy_severity }}
       ignore_unfixed: ${{ inputs.trivy_ignore_unfixed }}
       exit_code: ${{ inputs.trivy_exit_code }}
+
+    # --------------------------------------------------
+    # 6. Unit Test (Jest)
+    # --------------------------------------------------
+  jest-test:
+    needs: build
+    if: |
+      inputs.enable_jest_job &&
+      inputs.test_cmd_jest != '' &&
+      ( !inputs.enable_detect_job || needs.detect-changes.outputs.any_changed == 'true' )
+    uses: ./.github/workflows/jest-test.yml
+    with:
+      version: ${{ inputs.version }}
+      workdir: ${{ inputs.workdir }}
+      install_cmd: ${{ inputs.install_cmd }}
+      test_cmd_jest: ${{ inputs.test_cmd_jest }}
+      start_db_cmd: ${{ inputs.start_db_cmd }}
+      close_db_cmd: ${{ inputs.close_db_cmd }}

@@ -1,0 +1,60 @@
+name: Setup Environment for Jest Tests
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+      workdir:
+        required: true
+        type: string
+
+      install_cmd:
+        required: true
+        type: string
+
+      test_cmd_jest:
+        required: true
+        type: string
+
+      start_db_cmd:
+        required: false
+        type: string
+
+      close_db_cmd:
+        required: false
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.version }}
+
+      - name: Install dependencies
+        run: ${{ inputs.install_cmd }}
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Start Database
+        if: inputs.start_db_cmd != ''
+        run: |
+          ${{ inputs.start_db_cmd }} &
+          sleep 10
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Run Jest Tests
+        run: ${{ inputs.test_cmd_jest }}
+        working-directory: ${{ inputs.workdir }}
+
+      - name: Close Database
+        if: inputs.close_db_cmd != ''
+        run: ${{ inputs.close_db_cmd }}
+        working-directory: ${{ inputs.workdir }}
