@@ -181,7 +181,7 @@ jobs:
     # 6. Unit Test (Jest)
     # --------------------------------------------------
   jest-test:
-    needs: build
+    needs: detect-changes
     if: |
       inputs.enable_jest_job &&
       inputs.test_cmd_jest != '' &&
